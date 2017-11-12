@@ -1,0 +1,81 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans     
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context-3.0.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+        http://www.springframework.org/schema/util
+        http://www.springframework.org/schema/util/spring-util-3.1.xsd">
+
+	<context:component-scan base-package="main.java.com.weatherapp" />
+
+	<mvc:annotation-driven />
+
+
+	<bean id="viewResolver"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix">
+			<value>/WEB-INF/pages/</value>
+		</property>
+		<property name="suffix">
+			<value>.jsp</value>
+		</property>
+	</bean>
+
+	<bean class="org.springframework.context.support.ResourceBundleMessageSource"
+		id="messageSource">
+		<property name="basename" value="messages" />
+	</bean>
+
+	<util:properties id="wunderGroundClient"
+		location="classpath:weatherApi.properties" />
+
+	<bean id="xstreamMarshaller" class="org.springframework.oxm.xstream.XStreamMarshaller">
+		<!-- Explicitly define the aliases -->
+		<property name="aliases">
+			<props>
+				<prop key="response">main.java.com.weatherapp.model.Response</prop>
+				<prop key="current_observation">main.java.com.weatherapp.model.CurrentObservation
+									</prop>
+				<prop key="observation_location">main.java.com.weatherapp.model.ObservationLocation
+									</prop>
+				<prop key="feature">main.java.com.weatherapp.model.Feature</prop>
+				<prop key="image">main.java.com.weatherapp.model.Image</prop>
+				<prop key="display_location">main.java.com.weatherapp.model.DisplayLocation</prop>
+			</props>
+		</property>
+
+		<!-- Tell XStream to find the alias names in the following classes -->
+		<property name="annotatedClasses">
+			<list>
+				<value>main.java.com.weatherapp.model.Response</value>
+				<value>main.java.com.weatherapp.model.CurrentObservation</value>
+				<value>main.java.com.weatherapp.model.ObservationLocation</value>
+				<value>main.java.com.weatherapp.model.Feature</value>
+				<value>main.java.com.weatherapp.model.Image</value>
+				<value>main.java.com.weatherapp.model.DisplayLocation</value>
+			</list>
+		</property>
+	</bean>
+	<bean id="restTemplate" class="org.springframework.web.client.RestTemplate">
+		<property name="messageConverters">
+			<list>
+				<!-- We only have one message converter for the RestTemplate, namely 
+					the XStream Marshller -->
+				<bean
+					class="org.springframework.http.converter.xml.MarshallingHttpMessageConverter">
+					<constructor-arg ref="xstreamMarshaller" />
+				</bean>
+				<bean id="jsonConverter"
+					class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter">
+					<property name="supportedMediaTypes" value="application/json" />
+				</bean>
+			</list>
+		</property>
+	</bean>
+</beans>
